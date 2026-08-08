@@ -7,10 +7,13 @@ A library for creating configuration GUIs in Minecraft
 Lattice is available through Maven Central.
 
 __Gradle__
-(For deobfuscated versions of Minecraft, i.e. 26.1+)
 ```groovy
 dependencies {
-    include(implementation("com.moulberry:lattice:2.1.0"))
+    include(modImplementation("com.moulberry:lattice:1.2.18")) {
+        attributes {
+            attribute(Attribute.of("earth.terrarium.cloche.modLoader", String), "fabric")
+        }
+    }
 }
 ```
 

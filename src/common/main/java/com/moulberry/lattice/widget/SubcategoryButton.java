@@ -6,7 +6,7 @@ import com.moulberry.lattice.LatticeWidgetContext;
 import com.moulberry.lattice.element.LatticeElement;
 import com.moulberry.lattice.element.LatticeElements;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -50,10 +50,9 @@ public class SubcategoryButton extends Button implements WidgetExtraFunctionalit
         }
     }
 
-    @Override
-    protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        this.extractDefaultSprite(graphics);
-        this.extractDefaultLabel(graphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE));
+    // Required in 1.21.11+
+    protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Implemented by MixinButtonRenderContent
     }
 
     public LatticeElements getSubcategory() {

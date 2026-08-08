@@ -1,6 +1,7 @@
 package com.moulberry.lattice;
 
 import com.moulberry.lattice.annotation.widget.LatticeWidgetMessage;
+import com.moulberry.lattice.multiversion.LatticeMultiversion;
 import com.moulberry.lattice.widget.CenteredStringWidget;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.*;
@@ -21,14 +22,14 @@ public interface WidgetFunction {
     AbstractWidget createWidget(Font font, @NotNull Component title, @Nullable Component description, int width);
 
     static WidgetFunction onOffButton(BooleanSupplier initial, Consumer<Boolean> setter) {
-        return (font, title, description, width) -> CycleButton.onOffBuilder(initial.getAsBoolean()).create(0, 0, width, 20, title, (cycleButton, bool) -> {
+        return (font, title, description, width) -> LatticeMultiversion.newCycleButtonOnOffBuilder(initial.getAsBoolean()).create(0, 0, width, 20, title, (cycleButton, bool) -> {
             setter.accept(bool);
         });
     }
 
     @SafeVarargs
     static <T> WidgetFunction cycleButton(Supplier<T> initial, Consumer<T> setter, T... values) {
-        return (font, title, description, width) -> CycleButton.builder(v -> Component.literal(v.toString()), initial.get())
+        return (font, title, description, width) -> LatticeMultiversion.newCycleButtonBuilder(v -> Component.literal(v.toString()), initial.get())
             .withValues(values)
             .create(0, 0, width, 20, title, (btn, object) -> {
                 setter.accept(object);
@@ -55,7 +56,7 @@ public interface WidgetFunction {
     static @NotNull WidgetFunction multilineEditBox(Supplier<String> initial, Consumer<String> setter, int height, int characterLimit) {
         return (font, title, description, width) -> {
             String initialValue = initial.get();
-            MultiLineEditBox editBox = MultiLineEditBox.builder().build(font, width, height, title);
+            MultiLineEditBox editBox = LatticeMultiversion.newMultiLineEditBox(font, width, height, title);
             editBox.setValue(initialValue);
             editBox.setCharacterLimit(characterLimit);
             editBox.setValueListener(setter);

@@ -25,13 +25,22 @@ public class LatticeMixinConfigPlugin implements IMixinConfigPlugin {
         Map.entry("v1206", 3829),
         Map.entry("v1216", 4430),
         Map.entry("v1219", 4548),
-        Map.entry("v12111", 4663),
-        Map.entry("v261", 4764),
-        Map.entry("v262", 4883)
+        Map.entry("v12111", 4663)
     );
 
     private static final Map<String, List<String>> versionedMixinMap = Map.ofEntries(
-        Map.entry("MixinLatticeMultiversion", List.of("v261", "v262"))
+        Map.entry("multiversion.MixinDrawString", List.of("v1201", "v1216")),
+        Map.entry("multiversion.MixinMouseScrolled", List.of("v1201", "v1202")),
+        Map.entry("multiversion.MixinNewMultiLineEditBox", List.of("v1201", "v1216")),
+        Map.entry("multiversion.MixinNewCycleButton", List.of("v1201", "v12111")),
+        Map.entry("multiversion.MixinOffsetZ", List.of("v1201", "v1216")),
+        Map.entry("multiversion.MixinGetWindowHandle", List.of("v1201", "v1219")),
+        Map.entry("MixinDropdownWidget", List.of("v1201", "v1202", "v1204", "v1206")),
+        Map.entry("MixinLatticeConfigScreen", List.of("v1201", "v1202", "v1216")),
+        Map.entry("MixinWidgetWithText", List.of("v1201", "v1202")),
+        Map.entry("GuiEventListenerMixins", List.of("v1201", "v1219")),
+        Map.entry("MixinDropdownWidgetEntry", List.of("v1219")),
+        Map.entry("MixinButtonRenderContent", List.of("v12111"))
     );
 
     @Override

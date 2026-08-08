@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.moulberry.lattice.mixin.v12111",
+  "compatibilityLevel": "JAVA_17",
+  "plugin": "com.moulberry.lattice.LatticeMixinConfigPlugin",
+  "client": [
+    "MixinButtonRenderContent",
+    "multiversion.MixinNewCycleButton"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

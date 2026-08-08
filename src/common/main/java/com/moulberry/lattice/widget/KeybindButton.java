@@ -2,11 +2,14 @@ package com.moulberry.lattice.widget;
 
 import com.moulberry.lattice.keybind.KeybindInterface;
 import com.moulberry.lattice.keybind.LatticeInputType;
+import com.moulberry.lattice.multiversion.LatticeMultiversion;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.ApiStatus;
@@ -34,10 +37,10 @@ public class KeybindButton extends Button implements WidgetExtraFunctionality {
         this.updateMessage();
     }
 
-    @Override
-    protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        this.extractDefaultSprite(graphics);
-        this.extractDefaultLabel(graphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE));
+    // Required in 1.21.11+
+    public void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Implemented by MixinButtonRenderContent
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -61,7 +64,7 @@ public class KeybindButton extends Button implements WidgetExtraFunctionality {
             return true;
         }
 
-        long window = Minecraft.getInstance().getWindow().handle();
+        long window = LatticeMultiversion.getWindowHandle();
         boolean shiftMod = false;
         boolean ctrlMod = false;
         boolean altMod = false;

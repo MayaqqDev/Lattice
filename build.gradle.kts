@@ -5,7 +5,7 @@ import com.vanniktech.maven.publish.SonatypeHost
 import earth.terrarium.cloche.api.attributes.TargetAttributes
 
 plugins {
-    id("earth.terrarium.cloche") version "0.18.8+beta-2"
+    id("earth.terrarium.cloche") version "0.16.9"
     id("com.vanniktech.maven.publish") version("0.28.0") // `maven-publish` doesn't support new maven central
 }
 
@@ -37,12 +37,6 @@ dependencies {
 var fabricJarOutputs = mutableListOf<Provider<out Jar>>()
 var forgeLikeJarOutputs = mutableListOf<Provider<out Jar>>()
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(25))
-    }
-}
-
 cloche {
     metadata {
         modId = "lattice"
@@ -64,8 +58,13 @@ cloche {
             compileOnly("org.jetbrains:annotations:23.0.0")
         }
 
-        mixins.from("src/26.1/main/mixins/lattice261.mixins.json")
-        mixins.from("src/26.2/main/mixins/lattice262.mixins.json")
+        mixins.from("src/1.20.1/main/mixins/lattice1201.mixins.json")
+        mixins.from("src/1.20.2/main/mixins/lattice1202.mixins.json")
+        mixins.from("src/1.20.4/main/mixins/lattice1204.mixins.json")
+        mixins.from("src/1.20.6/main/mixins/lattice1206.mixins.json")
+        mixins.from("src/1.21.6/main/mixins/lattice1216.mixins.json")
+        mixins.from("src/1.21.9/main/mixins/lattice1219.mixins.json")
+        mixins.from("src/1.21.11/main/mixins/lattice12111.mixins.json")
     }
 
     val commonMinecraftVersion: Attribute<String> = Attribute.of("com.moulberry.commonMinecraftVersion", String::class.java)
@@ -79,9 +78,7 @@ cloche {
         }
     }
 
-    fun create(version: String, fabricLoader: String) {
-        val commonTarget = createCommon(version)
-
+    fun createFabric(commonTarget: CommonTarget, version: String, fabricLoader: String) {
         val rawVersion = version.split("-")[0]
         fabric("fabric:${rawVersion}") {
             minecraftVersion = version
@@ -95,12 +92,57 @@ cloche {
         }
     }
 
-    create("26.2", "0.19.3")
-    create("26.1", "0.18.4")
+    fun createForge(commonTarget: CommonTarget, version: String, forgeVersion: String) {
+        forge("forge:${version}") {
+            minecraftVersion = version
+            loaderVersion = forgeVersion
+
+            dependsOn(commonTarget)
+
+            forgeLikeJarOutputs.add(finalJar)
+        }
+    }
+
+    fun createNeoforge(commonTarget: CommonTarget, version: String, neoforgeVersion: String) {
+        neoforge("neoforge:${version}") {
+            minecraftVersion = version
+            loaderVersion = neoforgeVersion
+
+            dependsOn(commonTarget)
+
+            forgeLikeJarOutputs.add(finalJar)
+        }
+    }
+
+    fun createAll(version: String, fabricLoader: String, forgeVersion: String?, neoforgeVersion: String?) {
+        val common = createCommon(version)
+        createFabric(common, version, fabricLoader)
+        if (forgeVersion != null) {
+            createForge(common, version, forgeVersion)
+        }
+        if (neoforgeVersion != null) {
+            createNeoforge(common, version, neoforgeVersion)
+        }
+    }
+
+    // todo: forge 1.20.6+ has an issue with mappings
+    // todo: neoforge 1.20.2 has an issue with dependency resolution
+    // todo: neoforge 1.20.1 doesn't exist... maybe can workaround
+    createAll("1.20.1", "0.14.21", null, null)
+    createAll("1.20.2", "0.16.14", null, null)//"20.2.93")
+    createAll("1.20.4", "0.16.14", null, null)//"20.4.248")
+    createAll("1.20.6", "0.16.14", null, null)//"20.6.136")
+    createAll("1.21.1", "0.16.14", null, null)//"21.1.193")
+    createAll("1.21.3", "0.16.14", null, null)//"21.3.86")
+    createAll("1.21.4", "0.16.14", null, null)//"21.4.147")
+    createAll("1.21.5", "0.16.14", null, null)//"21.5.87")
+    createAll("1.21.6", "0.16.14", null, null)//"21.6.20-beta")
+    createAll("1.21.9", "0.17.2", null, null)
+    createAll("1.21.11-rc2", "0.18.1", null, null)
 }
 
 tasks.register<Jar>("buildMergedFabric") {
-    archiveBaseName.set("lattice")
+    archiveBaseName.set("lattice-fabric")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     fabricJarOutputs.forEach { jarProvider ->
@@ -108,7 +150,53 @@ tasks.register<Jar>("buildMergedFabric") {
     }
 
     manifest {
+        attributes["Fabric-Loom-Mixin-Remap-Type"] = "static"
         attributes["Fabric-Jar-Type"] = "classes"
+        attributes["Fabric-Mapping-Namespace"] = "intermediary"
+    }
+}
+
+tasks.register("remapFabricClients") {
+    dependsOn(
+        "remapFabric1201ClientMinecraftIntermediary",
+        "remapFabric1202ClientMinecraftIntermediary",
+        "remapFabric1204ClientMinecraftIntermediary",
+        "remapFabric1206ClientMinecraftIntermediary",
+        "remapFabric1211ClientMinecraftIntermediary",
+        "remapFabric1213ClientMinecraftIntermediary",
+        "remapFabric1214ClientMinecraftIntermediary",
+        "remapFabric1215ClientMinecraftIntermediary",
+        "remapFabric1216ClientMinecraftIntermediary",
+        "remapFabric1219ClientMinecraftIntermediary",
+        "remapFabric12111Rc2ClientMinecraftIntermediary",
+        "generateFabric1201MappingsArtifact",
+        "generateFabric1202MappingsArtifact",
+        "generateFabric1204MappingsArtifact",
+        "generateFabric1206MappingsArtifact",
+        "generateFabric1211MappingsArtifact",
+        "generateFabric1213MappingsArtifact",
+        "generateFabric1214MappingsArtifact",
+        "generateFabric1215MappingsArtifact",
+        "generateFabric1216MappingsArtifact",
+        "generateFabric1219MappingsArtifact",
+        "generateFabric12111Rc2MappingsArtifact",
+    )
+}
+
+tasks.register<Jar>("buildMergedForgelike") {
+    archiveBaseName.set("lattice-forgelike")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    forgeLikeJarOutputs.forEach { jarProvider ->
+        from(project.zipTree(jarProvider.get().archiveFile))
+    }
+}
+
+configurations.all {
+    resolutionStrategy.capabilitiesResolution {
+        withCapability("cpw.mods:modlauncher") {
+            selectHighestVersion()
+        }
     }
 }
 
@@ -116,9 +204,10 @@ fun baseFabricConfiguration(configuration: Configuration) {
     configuration.outgoing.capability("com.moulberry:lattice:${rootProject.version}")
     configuration.outgoing.artifact(tasks.named<Jar>("buildMergedFabric").get())
 
+    configuration.attributes.attribute(TargetAttributes.MOD_LOADER, "fabric")
     configuration.attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
     configuration.attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
-    configuration.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 25)
+    configuration.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
     configuration.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
 }
 

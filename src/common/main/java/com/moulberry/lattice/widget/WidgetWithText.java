@@ -1,13 +1,11 @@
 package com.moulberry.lattice.widget;
 
+import com.moulberry.lattice.multiversion.*;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
@@ -18,7 +16,7 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 
 @ApiStatus.Internal
-public class WidgetWithText extends AbstractWidget {
+public class WidgetWithText extends AbstractWidget implements IGuiEventListener {
 
     public final AbstractWidget widget;
     private final @Nullable Component title;
@@ -83,7 +81,7 @@ public class WidgetWithText extends AbstractWidget {
     }
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         int x = this.getX() + 1;
         int y = this.getY();
 
@@ -91,83 +89,75 @@ public class WidgetWithText extends AbstractWidget {
 
         if (!titleLines.isEmpty()) {
             for (FormattedCharSequence line : getTitleLines()) {
-                guiGraphics.text(this.font, line, x, y, 0xFFFFFFFF);
+                LatticeMultiversion.drawString(guiGraphics, this.font, line, x, y, 0xFFFFFFFF);
                 y += this.font.lineHeight;
             }
         }
 
-        this.widget.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        this.widget.render(guiGraphics, mouseX, mouseY, partialTick);
 
         x = this.getX()+4;
         y += this.widget.getHeight()+2;
         for (FormattedCharSequence line : getDescriptionLines()) {
-            guiGraphics.text(this.font, line, x, y, 0xFFE0E0E0);
+            LatticeMultiversion.drawString(guiGraphics, this.font, line, x, y, 0xFFE0E0E0);
             y += this.font.lineHeight;
         }
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+    public boolean lattice$mouseClicked(IMouseButtonEvent event, BooleanSupplier callSuper) {
         int right = this.widget.getX() + this.widget.getWidth();
         int bottom = this.widget.getY() + this.widget.getHeight();
-        double mouseX = event.x();
-        double mouseY = event.y();
+        double mouseX = event.lattice$x();
+        double mouseY = event.lattice$y();
         if (mouseX >= this.widget.getX() && mouseY >= this.widget.getY() && mouseX <= right && mouseY <= bottom) {
-            return this.widget.mouseClicked(event, doubleClick);
+            return event.lattice$passClickedTo(this.widget);
         }
         return false;
     }
 
     @Override
-    public boolean mouseReleased(MouseButtonEvent event) {
+    public boolean lattice$mouseReleased(IMouseButtonEvent event, BooleanSupplier callSuper) {
         int right = this.widget.getX() + this.widget.getWidth();
         int bottom = this.widget.getY() + this.widget.getHeight();
-        double mouseX = event.x();
-        double mouseY = event.y();
+        double mouseX = event.lattice$x();
+        double mouseY = event.lattice$y();
         if (mouseX >= this.widget.getX() && mouseY >= this.widget.getY() && mouseX <= right && mouseY <= bottom) {
-            return this.widget.mouseReleased(event);
+            return event.lattice$passReleasedTo(this.widget);
         }
         return false;
     }
 
     @Override
-    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+    public boolean lattice$mouseDragged(IMouseButtonEvent event, double dx, double dy, BooleanSupplier callSuper) {
         if (this.widget.isFocused()) {
-            return this.widget.mouseDragged(event, dx, dy);
+            return event.lattice$passDraggedTo(this.widget, dx, dy);
         }
         return false;
     }
 
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        int right = this.widget.getX() + this.widget.getWidth();
-        int bottom = this.widget.getY() + this.widget.getHeight();
-        if (mouseX >= this.widget.getX() && mouseY >= this.widget.getY() && mouseX <= right && mouseY <= bottom) {
-            return this.widget.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-        }
-        return false;
-    }
+    // mouseScrolled implemented by MixinWidgetWithText
 
     @Override
-    public boolean keyPressed(KeyEvent event) {
+    public boolean lattice$keyPressed(IKeyEvent event, BooleanSupplier callSuper) {
         if (this.widget.isFocused()) {
-            return this.widget.keyPressed(event);
+            return event.lattice$passPressedTo(this.widget);
         }
         return false;
     }
 
     @Override
-    public boolean keyReleased(KeyEvent event) {
+    public boolean lattice$keyReleased(IKeyEvent event, BooleanSupplier callSuper) {
         if (this.widget.isFocused()) {
-            return this.widget.keyReleased(event);
+            return event.lattice$passReleasedTo(this.widget);
         }
         return false;
     }
 
     @Override
-    public boolean charTyped(CharacterEvent event) {
+    public boolean lattice$charTyped(ICharacterEvent event, BooleanSupplier callSuper) {
         if (this.widget.isFocused()) {
-            return this.widget.charTyped(event);
+            return event.lattice$passCharTypedTo(this.widget);
         }
         return false;
     }
