@@ -5,7 +5,17 @@
   "compatibilityLevel": "JAVA_17",
   "plugin": "com.moulberry.lattice.LatticeMixinConfigPlugin",
   "client": [
-    "MixinDropdownWidget"
+    "multiversion.MixinDrawString",
+    "multiversion.MixinGetWindowHandle",
+    "multiversion.MixinNewCycleButton",
+    "multiversion.MixinNewMultiLineEditBox",
+    "multiversion.MixinOffsetZ",
+    "GuiEventListenerMixins$MixinLatticeConfigScreen",
+    "GuiEventListenerMixins$MixinAbstractWidgets",
+    "GuiEventListenerMixins$MixinDropdownWidget",
+    "GuiEventListenerMixins$MixinEditableSlider",
+    "MixinDropdownWidget",
+    "MixinLatticeConfigScreen"
   ],
   "injectors": {
     "defaultRequire": 1

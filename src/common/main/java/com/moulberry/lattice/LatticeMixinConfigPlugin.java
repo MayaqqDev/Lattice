@@ -1,13 +1,10 @@
 package com.moulberry.lattice;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import net.msrandom.multiplatform.annotations.Expect;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -16,53 +13,47 @@ import java.util.Set;
 public class LatticeMixinConfigPlugin implements IMixinConfigPlugin {
 
     private String mixinPackage = null;
-    private static int dataVersion = -1;
+    private static String version = "";
 
-    private static final Map<String, Integer> dataVersionForMixin = Map.ofEntries(
-        Map.entry("v1201", 0),
-        Map.entry("v1202", 3572),
-        Map.entry("v1204", 3693),
-        Map.entry("v1206", 3829),
-        Map.entry("v1216", 4430),
-        Map.entry("v1219", 4548),
-        Map.entry("v12111", 4663)
+    // Trust me.
+    private static final Map<String, Integer> versionsRanked = Map.ofEntries(
+        Map.entry("1.20.1", 0),
+        Map.entry("1.20.2", 1),
+        Map.entry("1.20.4", 2),
+        Map.entry("1.20.6", 3),
+        Map.entry("1.21.1", 4),
+        Map.entry("1.21.3", 5),
+        Map.entry("1.21.4", 6),
+        Map.entry("1.21.5", 7),
+        Map.entry("1.21.6", 8),
+        Map.entry("1.21.9", 9),
+        Map.entry("1.21.11", 10)
     );
 
     private static final Map<String, List<String>> versionedMixinMap = Map.ofEntries(
-        Map.entry("multiversion.MixinDrawString", List.of("v1201", "v1216")),
-        Map.entry("multiversion.MixinMouseScrolled", List.of("v1201", "v1202")),
-        Map.entry("multiversion.MixinNewMultiLineEditBox", List.of("v1201", "v1216")),
-        Map.entry("multiversion.MixinNewCycleButton", List.of("v1201", "v12111")),
-        Map.entry("multiversion.MixinOffsetZ", List.of("v1201", "v1216")),
-        Map.entry("multiversion.MixinGetWindowHandle", List.of("v1201", "v1219")),
-        Map.entry("MixinDropdownWidget", List.of("v1201", "v1202", "v1204", "v1206")),
-        Map.entry("MixinLatticeConfigScreen", List.of("v1201", "v1202", "v1216")),
-        Map.entry("MixinWidgetWithText", List.of("v1201", "v1202")),
-        Map.entry("GuiEventListenerMixins", List.of("v1201", "v1219")),
-        Map.entry("MixinDropdownWidgetEntry", List.of("v1219")),
-        Map.entry("MixinButtonRenderContent", List.of("v12111"))
+        Map.entry("multiversion.MixinDrawString", List.of("1.20.1", "1.20.6", "1.21.6")),
+        Map.entry("multiversion.MixinMouseScrolled", List.of("1.20.1", "1.20.2")),
+        Map.entry("multiversion.MixinNewMultiLineEditBox", List.of("1.20.1", "1.20.6", "1.21.6")),
+        Map.entry("multiversion.MixinNewCycleButton", List.of("1.20.1", "1.20.6", "1.21.11")),
+        Map.entry("multiversion.MixinOffsetZ", List.of("1.20.1", "1.20.6", "1.21.6")),
+        Map.entry("multiversion.MixinGetWindowHandle", List.of("1.20.1", "1.20.6", "1.21.9")),
+        Map.entry("MixinDropdownWidget", List.of("1.20.1", "1.20.2", "1.20.4", "1.20.6")),
+        Map.entry("MixinLatticeConfigScreen", List.of("1.20.1", "1.20.2", "1.20.6", "1.21.6")),
+        Map.entry("MixinWidgetWithText", List.of("1.20.1", "1.20.2")),
+        Map.entry("GuiEventListenerMixins", List.of("1.20.1", "1.20.6", "1.21.9")),
+        Map.entry("MixinDropdownWidgetEntry", List.of("1.21.9")),
+        Map.entry("MixinButtonRenderContent", List.of("1.21.11"))
     );
+
+    @Expect
+    public static String getVersion();
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         Objects.requireNonNull(this.mixinPackage);
 
         if (mixinClassName.startsWith(this.mixinPackage + ".")) {
-            if (dataVersion == -1) {
-                try {
-                    try (InputStream inputStream = LatticeMixinConfigPlugin.class.getResourceAsStream("/version.json")) {
-                        if (inputStream == null) {
-                            throw new RuntimeException("/version.json is not present!");
-                        }
-                        try (InputStreamReader reader = new InputStreamReader(inputStream)) {
-                            JsonObject jsonObject = new Gson().fromJson(reader, JsonObject.class);
-                            dataVersion = jsonObject.get("world_version").getAsInt();
-                        }
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException("Unable to parse Minecraft version information", e);
-                }
-            }
+            version = getVersion();
 
             String mixinName = mixinClassName.substring(this.mixinPackage.length() + 1);
             mixinName = mixinName.split("\\$")[0];
@@ -77,15 +68,18 @@ public class LatticeMixinConfigPlugin implements IMixinConfigPlugin {
             boolean found = false;
 
             for (String mixinVersionName : versionsForMixin) {
-                int mixinDataVersion = dataVersionForMixin.get(mixinVersionName);
+                int mixinVersion = versionsRanked.get(mixinVersionName);
+                var idVersion = "v" + mixinVersionName.replaceAll("\\.", "");
 
-                if (this.mixinPackage.endsWith("." + mixinVersionName)) {
+                if (this.mixinPackage.endsWith("." + idVersion)) {
                     found = true;
                 }
 
-                if (mixinDataVersion <= this.dataVersion && (latestApplicableVersion == null || mixinDataVersion > latestApplicableVersion)) {
-                    latestApplicableVersion = mixinDataVersion;
-                    applyVersionName = mixinVersionName;
+                int currentVersionOrdinal = versionsRanked.get(version);
+
+                if (mixinVersion <= currentVersionOrdinal && (latestApplicableVersion == null || currentVersionOrdinal > latestApplicableVersion)) {
+                    latestApplicableVersion = mixinVersion;
+                    applyVersionName = idVersion;
                 }
             }
 

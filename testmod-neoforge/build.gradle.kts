@@ -1,5 +1,5 @@
 plugins {
-    id("earth.terrarium.cloche") version "0.11.6"
+    id("earth.terrarium.cloche") version "0.19.13"
 }
 
 version = "1.0.0"

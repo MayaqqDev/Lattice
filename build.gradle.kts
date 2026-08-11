@@ -1,11 +1,10 @@
 import earth.terrarium.cloche.api.target.CommonTarget
-import com.vanniktech.maven.publish.JavaLibrary
-import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.SonatypeHost
 import earth.terrarium.cloche.api.attributes.TargetAttributes
+import earth.terrarium.cloche.api.attributes.MinecraftModLoader
 
 plugins {
-    id("earth.terrarium.cloche") version "0.16.9"
+    id("earth.terrarium.cloche") version "0.19.13"
     id("com.vanniktech.maven.publish") version("0.28.0") // `maven-publish` doesn't support new maven central
 }
 
@@ -35,7 +34,10 @@ dependencies {
 }
 
 var fabricJarOutputs = mutableListOf<Provider<out Jar>>()
-var forgeLikeJarOutputs = mutableListOf<Provider<out Jar>>()
+var forgeJarOutputs = mutableListOf<Provider<out Jar>>()
+var neoforgeJarOutputs = mutableListOf<Provider<out Jar>>()
+
+val javaComponent = components.findByName("java") as AdhocComponentWithVariants
 
 cloche {
     metadata {
@@ -56,16 +58,13 @@ cloche {
     common {
         dependencies {
             compileOnly("org.jetbrains:annotations:23.0.0")
+            compileOnly("org.spongepowered:mixin:0.8.3")
         }
-
-        mixins.from("src/1.20.1/main/mixins/lattice1201.mixins.json")
-        mixins.from("src/1.20.2/main/mixins/lattice1202.mixins.json")
-        mixins.from("src/1.20.4/main/mixins/lattice1204.mixins.json")
-        mixins.from("src/1.20.6/main/mixins/lattice1206.mixins.json")
-        mixins.from("src/1.21.6/main/mixins/lattice1216.mixins.json")
-        mixins.from("src/1.21.9/main/mixins/lattice1219.mixins.json")
-        mixins.from("src/1.21.11/main/mixins/lattice12111.mixins.json")
     }
+
+    val fabriccommon = common("fabriccommon")
+    val forgecommon = common("forgecommon")
+    val neoforgecommon = common("neoforgecommon")
 
     val commonMinecraftVersion: Attribute<String> = Attribute.of("com.moulberry.commonMinecraftVersion", String::class.java)
 
@@ -84,7 +83,16 @@ cloche {
             minecraftVersion = version
             loaderVersion = fabricLoader
 
+            mixins.from("src/1.20.1/main/mixins/lattice1201.mixins.json")
+            mixins.from("src/1.20.2/main/mixins/lattice1202.mixins.json")
+            mixins.from("src/1.20.4/main/mixins/lattice1204.mixins.json")
+            mixins.from("src/1.20.6/main/mixins/lattice1206.mixins.json")
+            mixins.from("src/1.21.6/main/mixins/lattice1216.mixins.json")
+            mixins.from("src/1.21.9/main/mixins/lattice1219.mixins.json")
+            mixins.from("src/1.21.11/main/mixins/lattice12111.mixins.json")
+
             dependsOn(commonTarget)
+            dependsOn(fabriccommon)
 
             includedClient()
 
@@ -97,9 +105,14 @@ cloche {
             minecraftVersion = version
             loaderVersion = forgeVersion
 
-            dependsOn(commonTarget)
+            mixins.from("src/1.20.1/main/mixins/lattice1201.mixins.json")
+            mixins.from("src/1.20.2/main/mixins/lattice1202.mixins.json")
+            mixins.from("src/1.20.4/main/mixins/lattice1204.mixins.json")
 
-            forgeLikeJarOutputs.add(finalJar)
+            dependsOn(commonTarget)
+            dependsOn(forgecommon)
+
+            forgeJarOutputs.add(finalJar)
         }
     }
 
@@ -108,9 +121,15 @@ cloche {
             minecraftVersion = version
             loaderVersion = neoforgeVersion
 
-            dependsOn(commonTarget)
+            mixins.from("src/1.20.6/main/mixins/lattice1206.mixins.json")
+            mixins.from("src/1.21.6/main/mixins/lattice1216.mixins.json")
+            mixins.from("src/1.21.9/main/mixins/lattice1219.mixins.json")
+            mixins.from("src/1.21.11/main/mixins/lattice12111.mixins.json")
 
-            forgeLikeJarOutputs.add(finalJar)
+            dependsOn(commonTarget)
+            dependsOn(neoforgecommon)
+
+            neoforgeJarOutputs.add(finalJar)
         }
     }
 
@@ -125,20 +144,31 @@ cloche {
         }
     }
 
-    // todo: forge 1.20.6+ has an issue with mappings
-    // todo: neoforge 1.20.2 has an issue with dependency resolution
-    // todo: neoforge 1.20.1 doesn't exist... maybe can workaround
-    createAll("1.20.1", "0.14.21", null, null)
-    createAll("1.20.2", "0.16.14", null, null)//"20.2.93")
-    createAll("1.20.4", "0.16.14", null, null)//"20.4.248")
-    createAll("1.20.6", "0.16.14", null, null)//"20.6.136")
-    createAll("1.21.1", "0.16.14", null, null)//"21.1.193")
-    createAll("1.21.3", "0.16.14", null, null)//"21.3.86")
-    createAll("1.21.4", "0.16.14", null, null)//"21.4.147")
-    createAll("1.21.5", "0.16.14", null, null)//"21.5.87")
-    createAll("1.21.6", "0.16.14", null, null)//"21.6.20-beta")
-    createAll("1.21.9", "0.17.2", null, null)
-    createAll("1.21.11-rc2", "0.18.1", null, null)
+    createAll("1.20.1", "0.18.5", "47.4.22", null)
+    createAll("1.20.2", "0.18.5", "48.1.0", null)
+    createAll("1.20.4", "0.18.5", "49.2.8", null)
+    createAll("1.20.6", "0.18.5", null, "20.6.139")
+    createAll("1.21.1", "0.18.5", null, "21.1.248")
+    createAll("1.21.3", "0.18.5", null, "21.3.97")
+    createAll("1.21.4", "0.18.5", null, "21.4.157")
+    createAll("1.21.5", "0.18.5", null, "21.5.98")
+    createAll("1.21.6", "0.18.5", null, "21.6.20-beta")
+    createAll("1.21.9", "0.18.5", null, "21.9.16-beta")
+    createAll("1.21.11", "0.18.5", null, "21.11.45")
+
+    targets.all {
+        javaComponent.withVariantsFromConfiguration(configurations.named<ConsumableConfiguration>(sourceSet.runtimeElementsConfigurationName)) {
+            skip()
+        }
+
+        javaComponent.withVariantsFromConfiguration(configurations.named<ConsumableConfiguration>(sourceSet.apiElementsConfigurationName)) {
+            skip()
+        }
+    }
+}
+
+tasks.withType<Jar>().named { it != "buildMergedFabric" && it != "buildMergedForge" && it != "buildMergedNeoforge" }.configureEach {
+    outputs.cacheIf { true }
 }
 
 tasks.register<Jar>("buildMergedFabric") {
@@ -149,6 +179,8 @@ tasks.register<Jar>("buildMergedFabric") {
         from(project.zipTree(jarProvider.get().archiveFile))
     }
 
+    archiveClassifier = "fabric"
+
     manifest {
         attributes["Fabric-Loom-Mixin-Remap-Type"] = "static"
         attributes["Fabric-Jar-Type"] = "classes"
@@ -156,40 +188,26 @@ tasks.register<Jar>("buildMergedFabric") {
     }
 }
 
-tasks.register("remapFabricClients") {
-    dependsOn(
-        "remapFabric1201ClientMinecraftIntermediary",
-        "remapFabric1202ClientMinecraftIntermediary",
-        "remapFabric1204ClientMinecraftIntermediary",
-        "remapFabric1206ClientMinecraftIntermediary",
-        "remapFabric1211ClientMinecraftIntermediary",
-        "remapFabric1213ClientMinecraftIntermediary",
-        "remapFabric1214ClientMinecraftIntermediary",
-        "remapFabric1215ClientMinecraftIntermediary",
-        "remapFabric1216ClientMinecraftIntermediary",
-        "remapFabric1219ClientMinecraftIntermediary",
-        "remapFabric12111Rc2ClientMinecraftIntermediary",
-        "generateFabric1201MappingsArtifact",
-        "generateFabric1202MappingsArtifact",
-        "generateFabric1204MappingsArtifact",
-        "generateFabric1206MappingsArtifact",
-        "generateFabric1211MappingsArtifact",
-        "generateFabric1213MappingsArtifact",
-        "generateFabric1214MappingsArtifact",
-        "generateFabric1215MappingsArtifact",
-        "generateFabric1216MappingsArtifact",
-        "generateFabric1219MappingsArtifact",
-        "generateFabric12111Rc2MappingsArtifact",
-    )
-}
-
-tasks.register<Jar>("buildMergedForgelike") {
-    archiveBaseName.set("lattice-forgelike")
+tasks.register<Jar>("buildMergedForge") {
+    archiveBaseName.set("lattice-forge")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    forgeLikeJarOutputs.forEach { jarProvider ->
+    forgeJarOutputs.forEach { jarProvider ->
         from(project.zipTree(jarProvider.get().archiveFile))
     }
+
+    archiveClassifier = "forge"
+}
+
+tasks.register<Jar>("buildMergedNeoforge") {
+    archiveBaseName.set("lattice-neoforge")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    neoforgeJarOutputs.forEach { jarProvider ->
+        from(project.zipTree(jarProvider.get().archiveFile))
+    }
+
+    archiveClassifier = "neoforge"
 }
 
 configurations.all {
@@ -204,7 +222,29 @@ fun baseFabricConfiguration(configuration: Configuration) {
     configuration.outgoing.capability("com.moulberry:lattice:${rootProject.version}")
     configuration.outgoing.artifact(tasks.named<Jar>("buildMergedFabric").get())
 
-    configuration.attributes.attribute(TargetAttributes.MOD_LOADER, "fabric")
+    configuration.attributes.attribute(TargetAttributes.MOD_LOADER, MinecraftModLoader.fabric)
+    configuration.attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+    configuration.attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+    configuration.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
+    configuration.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+}
+
+fun baseForgeConfiguration(configuration: Configuration) {
+    configuration.outgoing.capability("com.moulberry:lattice:${rootProject.version}")
+    configuration.outgoing.artifact(tasks.named<Jar>("buildMergedForge").get())
+
+    configuration.attributes.attribute(TargetAttributes.MOD_LOADER, MinecraftModLoader.forge)
+    configuration.attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+    configuration.attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+    configuration.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
+    configuration.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+}
+
+fun baseNeoforgeConfiguration(configuration: Configuration) {
+    configuration.outgoing.capability("com.moulberry:lattice:${rootProject.version}")
+    configuration.outgoing.artifact(tasks.named<Jar>("buildMergedNeoforge").get())
+
+    configuration.attributes.attribute(TargetAttributes.MOD_LOADER, MinecraftModLoader.neoforge)
     configuration.attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
     configuration.attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
     configuration.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
@@ -221,19 +261,28 @@ var fabricConfigurationRuntime = configurations.create("fabricRuntime") {
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
 }
 
-val javaComponent = components.findByName("java") as AdhocComponentWithVariants
+var forgeConfigurationApi = configurations.create("forgeApi") {
+    baseForgeConfiguration(this)
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
+}
 
-// Hack to remove all cloche variants from publication
-rootProject.configurations.forEach {
-    try {
-        javaComponent.withVariantsFromConfiguration(it) {
-            skip()
-        }
-    } catch (ignored: Exception) {}
+var forgeConfigurationRuntime = configurations.create("forgeRuntime") {
+    baseForgeConfiguration(this)
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+}
+
+var neoforgeConfigurationApi = configurations.create("neoforgeApi") {
+    baseNeoforgeConfiguration(this)
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
+}
+
+var neoforgeConfigurationRuntime = configurations.create("neoforgeRuntime") {
+    baseNeoforgeConfiguration(this)
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
 }
 
 javaComponent.addVariantsFromConfiguration(fabricConfigurationApi) {
-    mapToMavenScope("runtime")
+    mapToMavenScope("compile")
     mapToOptional()
 }
 javaComponent.addVariantsFromConfiguration(fabricConfigurationRuntime) {
@@ -241,14 +290,32 @@ javaComponent.addVariantsFromConfiguration(fabricConfigurationRuntime) {
     mapToOptional()
 }
 
+javaComponent.addVariantsFromConfiguration(forgeConfigurationApi) {
+    mapToMavenScope("compile")
+    mapToOptional()
+}
+javaComponent.addVariantsFromConfiguration(forgeConfigurationRuntime) {
+    mapToMavenScope("runtime")
+    mapToOptional()
+}
+
+javaComponent.addVariantsFromConfiguration(neoforgeConfigurationApi) {
+    mapToMavenScope("compile")
+    mapToOptional()
+}
+javaComponent.addVariantsFromConfiguration(neoforgeConfigurationRuntime) {
+    mapToMavenScope("runtime")
+    mapToOptional()
+}
+
 mavenPublishing {
-    configure(JavaLibrary(JavadocJar.Javadoc(), true))
+//    configure(JavaLibrary(JavadocJar.Javadoc(), true))
 
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
-    signAllPublications()
+    //signAllPublications()
 
-    coordinates("com.moulberry", "lattice", version.toString())
+    //coordinates("com.moulberry", "lattice", version.toString())
 
     pom {
         name = "Lattice"

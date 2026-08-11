@@ -1,5 +1,5 @@
 plugins {
-    id("earth.terrarium.cloche") version "0.16.9"
+    id("earth.terrarium.cloche") version "0.19.13"
 }
 
 version = "1.0.0"
@@ -16,9 +16,6 @@ repositories {
     }
 }
 
-dependencies {
-    compileOnly(project(":"))
-}
 
 cloche {
     metadata {
@@ -67,31 +64,4 @@ cloche {
     createFabric("1.21.6", "0.128.1")
     createFabric("1.21.9", "0.133.14")
     createFabric("1.21.11-rc2", "0.139.4")
-}
-
-tasks.register("remapFabricClients") {
-    dependsOn(
-        "remapFabric1201ClientMinecraftIntermediary",
-        "remapFabric1202ClientMinecraftIntermediary",
-        "remapFabric1204ClientMinecraftIntermediary",
-        "remapFabric1206ClientMinecraftIntermediary",
-        "remapFabric1211ClientMinecraftIntermediary",
-        "remapFabric1213ClientMinecraftIntermediary",
-        "remapFabric1214ClientMinecraftIntermediary",
-        "remapFabric1215ClientMinecraftIntermediary",
-        "remapFabric1216ClientMinecraftIntermediary",
-        "remapFabric1219ClientMinecraftIntermediary",
-        "remapFabric12111Rc2ClientMinecraftIntermediary",
-        "generateFabric1201MappingsArtifact",
-        "generateFabric1202MappingsArtifact",
-        "generateFabric1204MappingsArtifact",
-        "generateFabric1206MappingsArtifact",
-        "generateFabric1211MappingsArtifact",
-        "generateFabric1213MappingsArtifact",
-        "generateFabric1214MappingsArtifact",
-        "generateFabric1215MappingsArtifact",
-        "generateFabric1216MappingsArtifact",
-        "generateFabric1219MappingsArtifact",
-        "generateFabric12111Rc2MappingsArtifact",
-    )
 }
