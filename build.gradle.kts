@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.JavaLibrary
+import com.vanniktech.maven.publish.JavadocJar
 import earth.terrarium.cloche.api.target.CommonTarget
 import com.vanniktech.maven.publish.SonatypeHost
 import earth.terrarium.cloche.api.attributes.TargetAttributes
@@ -309,13 +311,13 @@ javaComponent.addVariantsFromConfiguration(neoforgeConfigurationRuntime) {
 }
 
 mavenPublishing {
-//    configure(JavaLibrary(JavadocJar.Javadoc(), true))
+    configure(JavaLibrary(JavadocJar.Javadoc(), true))
 
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
-    //signAllPublications()
+    signAllPublications()
 
-    //coordinates("com.moulberry", "lattice", version.toString())
+    coordinates("com.moulberry", "lattice", version.toString())
 
     pom {
         name = "Lattice"
